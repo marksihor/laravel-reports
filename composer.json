@@ -1,0 +1,21 @@
+{
+    "name": "marksihor/laravel-reports",
+    "description": "Laravel reports based on eloquent queries.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ihor Korotkyi",
+            "email": "marks.ihor@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "MarksIhor\\LaravelReports\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["MarksIhor\\LaravelReports\\ReportsServiceProvider"]
+        }
+    }
+}
