@@ -2,10 +2,34 @@
 
 namespace MarksIhor\LaravelReports;
 
-class Report
+use Illuminate\Database\Eloquent\Builder;
+use MarksIhor\LaravelFiltering\Filterable;
+
+class Report extends Filters
 {
-    public function make()
+    use Filterable;
+
+    protected $query;
+
+    public function __construct(Builder $query)
     {
-        //
+        $this->query = $query;
+    }
+
+    public function filterable()
+    {
+        $this->query = $this->filter($this->query);
+
+        return $this;
+    }
+
+    public function count()
+    {
+        return $this->query->count();
+    }
+
+    public function statistics()
+    {
+        // dodo
     }
 }
