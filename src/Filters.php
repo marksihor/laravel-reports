@@ -6,23 +6,32 @@ use Carbon\Carbon;
 
 abstract class Filters
 {
-    public function today(?string $column = 'created_at'): self
+    public static array $periods = ['all', 'yesterday', 'today', 'tomorrow', 'thisWeek', 'thisMonth', 'thisYear', 'future'];
+
+    public function today(?string $column = null): self
     {
-        $this->query->whereDate($column, Carbon::today());
+        $this->query->whereDate($column ?: 'created_at', Carbon::today());
 
         return $this;
     }
 
-    public function yesterday(?string $column = 'created_at'): self
+    public function yesterday(?string $column = null): self
     {
-        $this->query->whereDate($column, Carbon::yesterday());
+        $this->query->whereDate($column ?: 'created_at', Carbon::yesterday());
 
         return $this;
     }
 
-    public function thisWeek(?string $column = 'created_at'): self
+    public function tomorrow(?string $column = null): self
     {
-        $this->query->whereBetween($column, [
+        $this->query->whereDate($column ?: 'created_at', Carbon::tomorrow());
+
+        return $this;
+    }
+
+    public function thisWeek(?string $column = null): self
+    {
+        $this->query->whereBetween($column ?: 'created_at', [
             Carbon::now()->startOfWeek(),
             Carbon::now()->endOfWeek()
         ]);
@@ -30,17 +39,24 @@ abstract class Filters
         return $this;
     }
 
-    public function thisMonth(?string $column = 'created_at'): self
+    public function thisMonth(?string $column = null): self
     {
-        $this->query->whereYear($column, date('Y'))
-            ->whereMonth('created_at', date('m'));
+        $this->query->whereYear($column ?: 'created_at', date('Y'))
+            ->whereMonth($column ?: 'created_at', date('m'));
 
         return $this;
     }
 
-    public function thisYear(?string $column = 'created_at'): self
+    public function thisYear(?string $column = null): self
     {
-        $this->query = $this->query->whereYear($column, date('Y'));
+        $this->query = $this->query->whereYear($column ?: 'created_at', date('Y'));
+
+        return $this;
+    }
+
+    public function future(?string $column = null): self
+    {
+        $this->query->whereDate($column ?: 'created_at', '>', Carbon::now());
 
         return $this;
     }
