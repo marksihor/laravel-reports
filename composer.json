@@ -9,7 +9,6 @@
     }
   ],
   "require": {
-    "laravel/framework": "^7.0",
     "marksihor/laravel-filtering": "*"
   },
   "autoload": {
