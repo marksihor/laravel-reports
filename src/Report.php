@@ -11,6 +11,7 @@ class Report extends Filters
 
     protected $query;
     protected ?string $sumColumn = null;
+    protected ?array $groupColumns = null;
     protected ?string $groupColumn = null;
     protected bool $withQuantity = false;
     protected bool $withSum = false;
@@ -58,10 +59,21 @@ class Report extends Filters
         return $this;
     }
 
+    public function setGroupColumns(array $columns): self
+    {
+        $this->groupColumns = $columns;
+
+        return $this;
+    }
+
     public function make()
     {
         if ($this->groupColumn) {
             $this->query->select($this->groupColumn)->groupBy($this->groupColumn);
+        }
+
+        if ($this->groupColumns) {
+            $this->query->select($this->groupColumns)->groupBy($this->groupColumns);
         }
 
         if ($this->sumColumn) {
