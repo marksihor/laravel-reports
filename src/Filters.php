@@ -6,7 +6,7 @@ use Carbon\Carbon;
 
 abstract class Filters
 {
-    public static array $periods = ['all', 'yesterday', 'today', 'tomorrow', 'thisWeek', 'thisMonth', 'thisYear', 'future'];
+    public static array $periods = ['all', 'yesterday', 'today', 'tomorrow', 'thisWeek', 'thisMonth', 'thisYear', 'future', 'allPeriod', 'last30days'];
 
     public function today(?string $column = null): self
     {
@@ -59,5 +59,27 @@ abstract class Filters
         $this->query->whereDate($column ?: 'created_at', '>', Carbon::now());
 
         return $this;
+    }
+
+    public function last30days(?string $column = null): self
+    {
+        $this->query->whereBetween($column ?: 'created_at', [Carbon::now()->subDays(30), Carbon::now()]);
+
+        return $this;
+    }
+
+    public function allPeriod(): self
+    {
+        return $this;
+    }
+
+    public function setPeriod(string $period, ?string $column = null): self
+    {
+        if (in_array($period, self::$periods)) {
+            $this->{$period}($column);
+            return $this;
+        }
+
+        throw new \Exception('Invalod period');
     }
 }
