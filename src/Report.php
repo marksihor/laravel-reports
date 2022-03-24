@@ -2,93 +2,102 @@
 
 namespace MarksIhor\LaravelReports;
 
-use Illuminate\Database\Eloquent\Builder;
-use MarksIhor\LaravelFiltering\Filterable;
+use Carbon\Carbon;
 
-class Report extends Filters
+abstract class Filters
 {
-    use Filterable;
+    public static array $periods = ['all', 'yesterday', 'today', 'tomorrow', 'thisWeek', 'thisMonth', 'thisYear', 'future', 'allPeriod', 'last30days'];
 
-    protected $query;
-    protected ?string $sumColumn = null;
-    protected ?array $groupColumns = null;
-    protected ?string $groupColumn = null;
-    protected bool $withQuantity = false;
-    protected bool $withSum = false;
-
-    public function __construct(Builder $query)
+    public function today(?string $column = null): self
     {
-        $this->query = $query;
-    }
-
-    public function filterable(): self
-    {
-        $this->query = $this->filter($this->query);
+        $this->query->whereDate($column ?: 'created_at', Carbon::today());
 
         return $this;
     }
 
-    public function count()
+    public function yesterday(?string $column = null): self
     {
-        return $this->query->count();
-    }
-
-    public function statistics()
-    {
-        // dodo
-    }
-
-    public function setSumColumn(string $column): self
-    {
-        $this->sumColumn = $column;
+        $this->query->whereDate($column ?: 'created_at', Carbon::yesterday());
 
         return $this;
     }
 
-    public function withQuantity(): self
+    public function tomorrow(?string $column = null): self
     {
-        $this->withQuantity = true;
+        $this->query->whereDate($column ?: 'created_at', Carbon::tomorrow());
 
         return $this;
     }
 
-    public function setGroupColumn(string $column): self
+    public function thisWeek(?string $column = null): self
     {
-        $this->groupColumn = $column;
+        $this->query->whereBetween($column ?: 'created_at', [
+            Carbon::now()->startOfWeek(),
+            Carbon::now()->endOfWeek()
+        ]);
 
         return $this;
     }
 
-    public function setGroupColumns(array $columns): self
+    public function thisMonth(?string $column = null): self
     {
-        $this->groupColumns = $columns;
+        $this->query->whereYear($column ?: 'created_at', date('Y'))
+            ->whereMonth($column ?: 'created_at', date('m'));
 
         return $this;
     }
 
-    public function make()
+    public function thisYear(?string $column = null): self
     {
-        if ($this->groupColumn) {
-            $this->query->select($this->groupColumn)->groupBy($this->groupColumn);
+        $this->query = $this->query->whereYear($column ?: 'created_at', date('Y'));
+
+        return $this;
+    }
+
+    public function future(?string $column = null): self
+    {
+        $this->query->whereDate($column ?: 'created_at', '>', Carbon::now());
+
+        return $this;
+    }
+
+    public function last30days(?string $column = null): self
+    {
+        $this->query->whereBetween($column ?: 'created_at', [Carbon::now()->subDays(30), Carbon::now()]);
+
+        return $this;
+    }
+
+    public function range(array $range, ?string $column = null): self
+    {
+        if (key_exists('from', $range) && key_exists('to', $range)) {
+            $this->query->whereBetween($column ?: 'created_at', [Carbon::parse($range['from']), Carbon::parse($range['to'])]);
+        } elseif (key_exists('from', $range)) {
+            $this->query->whereDate($column ?: 'created_at', '>', Carbon::parse($range['from']));
+        } elseif (key_exists('to', $range)) {
+            $this->query->whereDate($column ?: 'created_at', '<', Carbon::parse($range['to']));
         }
 
-        if ($this->groupColumns) {
-            $this->query->select($this->groupColumns)->groupBy($this->groupColumns);
-        }
-
-        if ($this->sumColumn) {
-            $this->query->selectRaw('sum(' . $this->sumColumn . ') as sum');
-        }
-
-        if ($this->withQuantity) {
-            $this->query->selectRaw('count(*) as quantity');
-        }
-
-        return $this->query->get();
+        return $this;
     }
 
-    public function sum()
+    public function allPeriod(): self
     {
-        return $this->query->sum($this->sumColumn);
+        return $this;
+    }
+
+    public function setPeriod($period, ?string $column = null): self
+    {
+        if (is_array($period)) {
+            if (key_exists('from', $period) || key_exists('to', $period)) {
+                $this->range($period, $column);
+                return $this;
+            }
+        } elseif (in_array($period, self::$periods)) {
+            $this->{$period}($column);
+            return $this;
+        }
+
+        throw new \Exception('Invalod period');
     }
 }
