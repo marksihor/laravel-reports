@@ -68,14 +68,32 @@ abstract class Filters
         return $this;
     }
 
+    public function range(array $range, ?string $column = null): self
+    {
+        if (key_exists('from', $range) && key_exists('to', $range)) {
+            $this->query->whereBetween($column ?: 'created_at', [Carbon::parse($range['from']), Carbon::parse($range['to'])]);
+        } elseif (key_exists('from', $range)) {
+            $this->query->whereDate($column ?: 'created_at', '>', Carbon::parse($range['from']));
+        } elseif (key_exists('to', $range)) {
+            $this->query->whereDate($column ?: 'created_at', '<', Carbon::parse($range['to']));
+        }
+
+        return $this;
+    }
+
     public function allPeriod(): self
     {
         return $this;
     }
 
-    public function setPeriod(string $period, ?string $column = null): self
+    public function setPeriod($period, ?string $column = null): self
     {
-        if (in_array($period, self::$periods)) {
+        if (is_array($period)) {
+            if (key_exists('from', $period) || key_exists('to', $period)) {
+                $this->range($period, $column);
+                return $this;
+            }
+        } elseif (in_array($period, self::$periods)) {
             $this->{$period}($column);
             return $this;
         }
