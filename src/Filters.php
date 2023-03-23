@@ -6,7 +6,7 @@ use Carbon\Carbon;
 
 abstract class Filters
 {
-    public static array $periods = ['all', 'yesterday', 'today', 'tomorrow', 'thisWeek', 'thisMonth', 'thisYear', 'future', 'allPeriod', 'last30days'];
+    public static array $periods = ['all', 'yesterday', 'today', 'tomorrow', 'thisWeek', 'thisMonth', 'thisYear', 'future', 'allPeriod', 'last30days', 'previousMonth'];
 
     public function today(?string $column = null): self
     {
@@ -43,6 +43,14 @@ abstract class Filters
     {
         $this->query->whereYear($column ?: 'created_at', date('Y'))
             ->whereMonth($column ?: 'created_at', date('m'));
+
+        return $this;
+    }
+
+    public function previousMonth(?string $column = null): self
+    {
+        $this->query->whereYear($column ?: 'created_at', now()->subMonth()->format('Y'))
+            ->whereMonth($column ?: 'created_at', now()->subMonth()->format('m'));
 
         return $this;
     }
