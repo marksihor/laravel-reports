@@ -64,7 +64,7 @@ abstract class Filters
 
     public function previousYear(?string $column = null): self
     {
-        $this->query = $this->query->whereYear($column ?: 'created_at', str(date('Y') - 1));
+        $this->query = $this->query->whereYear($column ?: 'created_at', strval(date('Y') - 1));
 
         return $this;
     }
